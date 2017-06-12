@@ -1,0 +1,7 @@
+/db.cfg
+/*.cfg
+/Scripts
+/Lib
+/.idea
+/Include
+/pip-selfcheck.json
