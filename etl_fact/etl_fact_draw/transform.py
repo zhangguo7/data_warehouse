@@ -1,4 +1,20 @@
 # -*- coding:utf-8 -*-
+"""
+绘图事实表的数据转换模块
+
+定义了一个class Transform
+用于完成对fact_draw表的数据转换与清理
+
+内部构建了一个 transform_main 方法
+以及其他内部调用方法：
+行业提取 _filter_ind1_ind2
+行业并入 _merge_ind_draw
+转换经营状态 _deal_operatingState
+增加日期和时间键 _trans_DT
+拼接电话和手机 _concat_tel
+删除多余的变量 _del_unnecessary_vars
+重命名 _rename
+"""
 import pandas as pd
 
 from tools.tool_funcs import other2int
@@ -28,7 +44,8 @@ class Transform(object):
     def _deal_operatingState(self, df):
         """处理经营状态，对三个经营状态变量提取相关信息
 
-        :param df: 增加了转租、空置、招聘、装修、仓库
+        :param df: 只有原始经营状态的数据框 operatingState,operatingState1,operatingState2
+        :return df:增加了转租、空置、招聘、装修、仓库
         """
         df['drawSublease'] = ''
         df['drawEmpty'] = ''
@@ -36,21 +53,22 @@ class Transform(object):
         df['drawRenovation'] = ''
         df['drawWarehouse'] = ''
         # 转租、转让
-        df.ix[df['operatingState'] == 5,'drawSublease'] = '转租、转让'
-        df.ix[df['operatingState2'] == 1, 'drawSublease'] = '转租、转让'
+        df.ix[df['operatingState'].apply(lambda x: '5' in x),'drawSublease'] = '转租、转让'
+        df.ix[df['operatingState2'].apply(lambda x: '1' in x), 'drawSublease'] = '转租、转让'
         # 装修
-        df.ix[df['operatingState'] == 6, 'drawRenovation'] = '装修'
-        df.ix[df['operatingState1'] == 6, 'drawRenovation'] = '装修'
-        df.ix[df['operatingState2'] == 3, 'drawRenovation'] = '装修'
+        df.ix[df['operatingState'].apply(lambda x: '6' in x), 'drawRenovation'] = '装修'
+        df.ix[df['operatingState1'].apply(lambda x: '6' in x), 'drawRenovation'] = '装修'
+        df.ix[df['operatingState2'].apply(lambda x: '3' in x), 'drawRenovation'] = '装修'
         # 仓库
-        df.ix[df['operatingState'] == 3, 'drawWarehouse'] = '仓库'
-        df.ix[df['operatingState1'] == 3, 'drawWarehouse'] = '仓库'
-        df.ix[df['operatingState1'] == 5, 'drawWarehouse'] = '仓库'
+        df.ix[df['operatingState'].apply(lambda x: '3' in x), 'drawWarehouse'] = '仓库'
+        df.ix[df['operatingState1'].apply(lambda x: '3' in x), 'drawWarehouse'] = '仓库'
+        df.ix[df['operatingState1'].apply(lambda x: '5' in x), 'drawWarehouse'] = '仓库'
         # 空置
-        df.ix[df['operatingState'] == 4, 'drawEmpty'] = '空置'
-        df.ix[df['operatingState1'] == 4, 'drawEmpty'] = '空置'
+        df.ix[df['operatingState'].apply(lambda x: '4' in x), 'drawEmpty'] = '空置'
+        df.ix[df['operatingState1'].apply(lambda x: '4' in x), 'drawEmpty'] = '空置'
+
         # 招聘
-        df.ix[df['operatingState1'] == 4, 'drawRecruit'] = '招聘'
+        df.ix[df['operatingState1'].apply(lambda x: '4' in x), 'drawRecruit'] = '招聘'
 
         return df
 
@@ -97,6 +115,11 @@ class Transform(object):
         return df
 
     def _rename(self,df):
+        """重命名函数
+
+        :param df: 原始变量名的数据框
+        :return: 更新了变量名的数据框
+        """
         """变量重命名"""
         new_names = [
             'drawGuid','marketGuid','drawZoneGuid','divisionKey','drawMateAddress',
