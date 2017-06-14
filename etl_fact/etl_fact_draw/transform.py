@@ -206,6 +206,8 @@ class Transform(object):
         df = self._doorplate_selfnum(df)
         # 清理装修
         df = self._trans_deco(df)
+        # 悬挂营业执照
+        df = self._trans_has_licence(df)
         # 删除多余的变量
         df = self._del_unnecessary_vars(df)
         # 重命名
