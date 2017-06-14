@@ -33,14 +33,31 @@ class Extract(object):
 
     def _extract_draw(self):
         """抽取绘图样本"""
-        vars = [
-            'guid', 'grandParentId', 'zoneGuid', 'districtId', 'receiveDate',
-            'inputDate', 'mateAddress', 'doorPlate', 'selfNum', 'sampleName',
-            'sampleMobile', 'sampleTel', 'bdLatitude', 'bdlongitude',
-            'photoCount', 'shopCount', 'decorateDescrption', 'isBusinessLicence',
-            'operatingState1', 'operatingState2', 'operatingState'
-        ]
-        return pd.read_sql_table(table_name='CommercialZone_Sample',con=self.engine, columns=vars)
+        draw_sql = "SELECT TOP 10000" \
+                    " guid," \
+                    " grandParentId," \
+                    " zoneGuid," \
+                    " districtId," \
+                    " receiveDate," \
+                    " inputDate," \
+                    " mateAddress," \
+                    " doorPlate," \
+                    " selfNum," \
+                    " sampleName," \
+                    " sampleMobile," \
+                    " sampleTel," \
+                    " bdLatitude," \
+                    " bdlongitude," \
+                    " photoCount," \
+                    " shopCount," \
+                    " decorateDescrption," \
+                    " isBusinessLicence," \
+                    " operatingState1," \
+                    " operatingState2," \
+                    " operatingState " \
+                    "FROM CommercialZone_Sample "
+
+        return pd.read_sql_query(sql=draw_sql,con=self.engine,chunksize=1000)
 
     def extract_main(self):
         """extract步骤的主函数
@@ -48,5 +65,5 @@ class Extract(object):
         :return: 行业数据框和绘图数据框
         """
         df_industry = self._extract_industry()
-        df_draw = self._extract_draw()
-        return df_industry, df_draw
+        df_draw_gen = self._extract_draw()
+        return df_industry, df_draw_gen

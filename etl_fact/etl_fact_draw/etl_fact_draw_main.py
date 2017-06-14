@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 import sys
-sys.path.append('./')
+sys.path.append('../')
+sys.path.append('../../tools')
 import configparser
 
-from tools.db_funcs import mysql_engine,mssql_engine
+from db_funcs import mysql_engine,mssql_engine
 from extract import Extract
 from transform import Transform
 from load import Load
@@ -17,19 +18,22 @@ def etl_fact_draw_main(engine_source, engine_target):
     :return:
     """
     extract = Extract(engine_source)
-    df_industry,df_draw = extract.extract_main()
+    df_industry,df_draw_gen = extract.extract_main()
 
-    transform = Transform(df_industry, df_draw)
-    df_clean = transform.transform_main()
+    for k,df_draw in enumerate(df_draw_gen,1):
+        print(k,k*1000,'start!')
+        if k > 3:break
+        transform = Transform(df_industry, df_draw)
+        df_clean = transform.transform_main()
 
-    load = Load(engine_target)
-    load.load_main(df_clean)
+        load = Load(engine_target)
+        load.load_main(df_clean)
 
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
     db_cfg.read('../../db.cfg')
 
-    engine_source = mssql_engine(**db_cfg['ht250'])
-    engine_target = mysql_engine(**db_cfg['dw240'])
+    engine_source = mssql_engine(**db_cfg['ht_test'])
+    engine_target = mysql_engine(**db_cfg['dw_test'])
 
     etl_fact_draw_main(engine_source,engine_target)

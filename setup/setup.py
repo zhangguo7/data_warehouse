@@ -39,6 +39,6 @@ def create_tables(db_info,sql_path):
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
     db_cfg.read('../db.cfg')
-    dw_info = db_cfg['dwloc']
+    dw_info = db_cfg['dw']
     create_db(dw_info)
     create_tables(dw_info,'create_tables.sql')
