@@ -126,17 +126,17 @@ CREATE TABLE `fact_draw` (
 `receiveTimeKey` int(6) NOT NULL COMMENT '接收样本时间键',
 `inputDateKey` int(8) NOT NULL COMMENT '录入样本日期键',
 `inputTimeKey` int(6) NOT NULL COMMENT '录入样本时间键',
-`drawMateAddress` varchar(255) NULL COMMENT '工商局标准地址',
+`drawMateAddress` text NULL COMMENT '工商局标准地址',
 `drawDoorPlate` varchar(255) NULL COMMENT '门牌号',
 `drawSelfNum` varchar(100) NULL COMMENT '自编号',
 `drawCompanyName` varchar(255) NULL COMMENT '绘图样本公司名',
 `drawCompanyAddress` varchar(255) NULL COMMENT '绘图商户地址',
 `drawTel` varchar(255) NULL COMMENT '绘图商户电话',
-`drawLongitude` numeric(9,6) NOT NULL COMMENT '绘图样本经度',
-`drawLatitude` numeric(9,6) NOT NULL COMMENT '绘图样本纬度',
-`drawPhotoCount` int(4) NOT NULL COMMENT '绘图拍照数量',
-`drawShopCount` int(4) NOT NULL COMMENT '店铺数量',
-`drawDecorate` varchar(10) NOT NULL COMMENT '装修情况',
+`drawLongitude` numeric(9,6) NULL COMMENT '绘图样本经度',
+`drawLatitude` numeric(9,6) NULL COMMENT '绘图样本纬度',
+`drawPhotoCount` int(4) NULL COMMENT '绘图拍照数量',
+`drawShopCount` int(4) NULL COMMENT '店铺数量',
+`drawDecorate` varchar(10) NULL COMMENT '装修情况',
 `drawHagLicence` varchar(4) NULL COMMENT '有无悬挂营业执照',
 `drawIndustryName_1` varchar(50) NULL COMMENT '一级行业名称',
 `drawIndustryName_2` varchar(50) NULL COMMENT '二级行业名称',
@@ -151,7 +151,8 @@ PRIMARY KEY (`drawId`) ,
 UNIQUE INDEX `绘图样本ID` (`drawId` ASC) USING BTREE,
 INDEX `接收样本日期` (`receiveDateKey` ASC) USING BTREE,
 INDEX `行政区划` (`divisionKey` ASC) USING BTREE,
-INDEX `接收样本时间` (`receiveTimeKey` ASC) USING BTREE
+INDEX `接收样本时间` (`receiveTimeKey` ASC) USING BTREE,
+UNIQUE INDEX `绘图样本guid` (`drawGuid` ASC) USING BTREE
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
