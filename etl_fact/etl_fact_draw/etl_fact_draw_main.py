@@ -22,7 +22,7 @@ def etl_fact_draw_main(engine_source, engine_target):
 
     for k,df_draw in enumerate(df_draw_gen,1):
         print(k,k*1000,'start!')
-        if k > 3:break
+        # if k > 3:break
         transform = Transform(df_industry, df_draw)
         df_clean = transform.transform_main()
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
     db_cfg.read('../../db.cfg')
 
-    engine_source = mssql_engine(**db_cfg['ht_test'])
-    engine_target = mysql_engine(**db_cfg['dw_test'])
+    engine_source = mssql_engine(**db_cfg['ht'])
+    engine_target = mysql_engine(**db_cfg['dw'])
 
     etl_fact_draw_main(engine_source,engine_target)

@@ -13,6 +13,8 @@ class Extract(object):
     def __init__(self,engine):
         self.engine = engine
 
+    def _extract_streetname(self):
+        return
     def _extract_industry(self):
         """抽取行业表
 
@@ -33,29 +35,34 @@ class Extract(object):
 
     def _extract_draw(self):
         """抽取绘图样本"""
-        draw_sql = "SELECT TOP 10000" \
-                    " guid," \
-                    " grandParentId," \
-                    " zoneGuid," \
-                    " districtId," \
-                    " receiveDate," \
-                    " inputDate," \
-                    " mateAddress," \
-                    " doorPlate," \
-                    " selfNum," \
-                    " sampleName," \
-                    " sampleMobile," \
-                    " sampleTel," \
-                    " bdLatitude," \
-                    " bdlongitude," \
-                    " photoCount," \
-                    " shopCount," \
-                    " decorateDescrption," \
-                    " isBusinessLicence," \
-                    " operatingState1," \
-                    " operatingState2," \
-                    " operatingState " \
-                    "FROM CommercialZone_Sample "
+        draw_sql = "SELECT " \
+                   " guid," \
+                   " provinceName," \
+                   " cityName," \
+                   " districtName," \
+                   " grandParentName," \
+                   " grandParentId," \
+                   " zoneGuid," \
+                   " districtId," \
+                   " receiveDate," \
+                   " inputDate," \
+                   " mateAddress," \
+                   " doorPlate," \
+                   " selfNum," \
+                   " sampleName," \
+                   " sampleMobile," \
+                   " sampleTel," \
+                   " bdLatitude," \
+                   " bdlongitude," \
+                   " photoCount," \
+                   " shopCount," \
+                   " decorateDescrption," \
+                   " isBusinessLicence," \
+                   " operatingState1," \
+                   " operatingState2," \
+                   " operatingState " \
+                   "FROM CommercialZone_Sample " \
+                   " WHERE guid != ''"
 
         return pd.read_sql_query(sql=draw_sql,con=self.engine,chunksize=1000)
 

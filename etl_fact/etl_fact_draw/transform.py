@@ -120,6 +120,7 @@ class Transform(object):
         )
         return df
 
+
     def _split_zbh(self,doorplate_lst):
         new_dp_lst = []
         selfnum_lst = []
@@ -147,7 +148,8 @@ class Transform(object):
         unnecessary_vars = [
             'attachId_x','attachId_y','industryPid_x','industryPid_y',
             'operatingState','operatingState1','operatingState2',
-            'inputDate','receiveDate','sampleMobile', 'sampleTel'
+            'inputDate','receiveDate','sampleMobile', 'sampleTel',
+            'provinceName','cityName','districtName','grandParentName'
         ]
         for var in unnecessary_vars:
             del df[var]
@@ -179,7 +181,6 @@ class Transform(object):
         :param df: 原始变量名的数据框
         :return: 更新了变量名的数据框
         """
-        """变量重命名"""
         new_names = [
             'drawGuid','marketGuid','drawZoneGuid','divisionKey','drawMateAddress',
             'drawDoorPlate','drawSelfNum','drawCompanyName','drawLatitude',
@@ -187,9 +188,20 @@ class Transform(object):
             'drawHagLicence','drawIndustryNo_1','drawIndustryName_1','drawindustryNo_2',
             'drawIndustryName_2','drawSublease','drawEmpty','drawRecruit',
             'drawRenovation','drawWarehouse','receiveDateKey','receiveTimeKey',
-            'inputDateKey','inputTimeKey','drawTel'
+            'inputDateKey','inputTimeKey','drawTel','drawCompanyAddress'
         ]
         df.columns = new_names
+        return df
+
+    def _concat_companyaddress(self,df):
+        def split_grandParentName(x):
+            x = str(x)
+            if x.find(':') != -1:
+                return x.split(':')[0]
+            return x
+        df['grandParentName'] = df['grandParentName'].apply(split_grandParentName)
+        df['drawCompanyAddress'] = df['provinceName'] + df['cityName'] + \
+                                   df['districtName'] + df['grandParentName']
         return df
 
     def transform_main(self):
@@ -202,6 +214,8 @@ class Transform(object):
         df = self._trans_DT(df)
         # 拼接电话和手机
         df = self._concat_tel(df)
+        # 拼接地址
+        df = self._concat_companyaddress(df)
         # 清理自编号
         df = self._doorplate_selfnum(df)
         # 清理装修
