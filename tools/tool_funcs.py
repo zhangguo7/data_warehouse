@@ -9,4 +9,4 @@ def other2int(other):
     try:
         return int(other)
     except:
-        return -999
+        return float('nan')
