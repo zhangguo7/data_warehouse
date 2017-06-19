@@ -3,10 +3,30 @@ import pandas as pd
 
 
 class Extract(object):
-
-    def __init__(self,engine_zone_macro,engine_draw):
+    """数据抽取
+    
+    1 检查已经传输过的商圈
+    2 抽取商圈下的poi计数信息
+    3 抽取租金
+    4 抽取商圈对应的省市县列表
+    5 收取商圈的行业列表
+    """
+    def __init__(self,engine_zone_macro,engine_draw,engine_target):
         self.engine_zone_macro = engine_zone_macro
         self.engine_draw = engine_draw
+        self.engine_target = engine_target
+
+    def done_market(self):
+        """已经完成etl的市场
+        
+        :return: 
+        """
+        done_market = pd.read_sql_table(
+            table_name='fact_market',
+            con=self.engine_target,
+            columns=['marketGuid']
+        )
+        return done_market['marketGuid'].values
 
     def tag_counts(self):
         """抽取tag_counts全表
@@ -14,11 +34,11 @@ class Extract(object):
         :param engine_zone_macro: zone_macro数据库引擎
         :return: 所有商圈tag计数的数据框
         """
-        tag_counts = pd.read_sql_table(
-            table_name='tag_counts',
-            con=self.engine_zone_macro)
-        # tag_counts = pd.read_sql_query(sql='select * from tag_counts',
-        #                                con=self.engine_zone_macro)
+        sql = "SELECT * " \
+              "FROM tag_counts " \
+              " WHERE type != 1 "
+        tag_counts = pd.read_sql_query(sql=sql,con=self.engine_zone_macro)
+
         return tag_counts
 
     def rent_details(self,grandParentId):
@@ -34,7 +54,8 @@ class Extract(object):
               " unit," \
               " coveringArea " \
               "FROM rent_detail " \
-              "WHERE grandParentId = '%s'"%grandParentId
+              "WHERE rent > 0 " \
+              "AND grandParentId = '%s'"%grandParentId
 
         rent_details = pd.read_sql_query(sql=sql,con=self.engine_zone_macro)
         return rent_details
@@ -54,6 +75,7 @@ class Extract(object):
               " districtId " \
               "FROM CommercialZone_Sample " \
               " WHERE grandParentId = '%s'"%grandParentId
+        # print(sql)
         zone_grandparent = pd.read_sql_query(sql=sql,con=self.engine_draw)
 
         return zone_grandparent

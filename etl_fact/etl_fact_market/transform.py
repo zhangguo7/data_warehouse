@@ -10,17 +10,17 @@ class Transform(object):
         rent['rent'] = rent['rent'].apply(other2int)
         rent['coveringArea'] = rent['coveringArea'].apply(other2int)
 
-        cond_1 = (rent['unit'] == '元/㎡/月') & (0<rent['rent'])&(rent['rent']<2000)
-        rent.ix[cond_1,'rent'] = rent.ix[cond_1,'rent'] / 30
-        rent1 = rent.ix[cond_1,['houseType','rent']]
+        cond_1 = (rent['unit'] == '元/㎡/月') & (rent['rent'] < 2000)
+        rent.ix[cond_1,'rent'] = rent.ix[cond_1, 'rent'] / 30
+        rent1 = rent.ix[cond_1, ['houseType', 'rent']]
 
-        cond_2 = (rent['unit'] == '元/月') & (0<rent['rent'])&(rent['rent']< 200000)
+        cond_2 = (rent['unit'] == '元/月') & (rent['rent'] < 200000)
         rent.ix[cond_2, 'rent'] = rent.ix[cond_2, 'rent'] /\
-                                  rent.ix[cond_2,'coveringArea']/30
-        rent2 = rent.ix[cond_2,['houseType','rent']]
+                                  rent.ix[cond_2, 'coveringArea']/30
+        rent2 = rent.ix[cond_2, ['houseType','rent']]
 
-        cond_3 = (rent['unit'] == '元/㎡/天') & (0 < rent['rent'])&(rent['rent'] < 100)
-        rent3 = rent.ix[cond_3,['houseType','rent']]
+        cond_3 = (rent['unit'] == '元/㎡/天') & (rent['rent'] < 100)
+        rent3 = rent.ix[cond_3, ['houseType', 'rent']]
 
         rent = pd.concat([rent1,rent2,rent3])
 
@@ -99,9 +99,15 @@ class Transform(object):
             }
             return mapping_dict.get(int_x)
 
+        def clean_market_name(name):
+            if name.find(":") != -1:
+                return name.split(':')[0]
+            else:
+                return name
+        print(zone_grandparent.ix[0,'grandParentName'])
         merged_dict = {
             'marketGuid': sample_tag_counts['grandParentId'],
-            'marketName': zone_grandparent['grandParentName'],
+            'marketName': clean_market_name(zone_grandparent.ix[0,'grandParentName']),
             'marketZoneGuid': zone_grandparent['zoneGuid'],
             'marketZoneName': zone_grandparent['zoneName'],
             'divisionKey': zone_grandparent['districtId'],
