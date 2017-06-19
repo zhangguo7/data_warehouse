@@ -10,16 +10,19 @@ class Transform(object):
         rent['rent'] = rent['rent'].apply(other2int)
         rent['coveringArea'] = rent['coveringArea'].apply(other2int)
 
-        cond_1 = (rent['unit'] == '元/㎡/月') & (rent['rent'] < 2000)
+        cond_1 = (rent['unit'] == '元/㎡/月') & (rent['rent'] < 2000) & \
+                 (rent['rent'] > 0) & (rent['coveringArea'] > 0)
         rent.ix[cond_1,'rent'] = rent.ix[cond_1, 'rent'] / 30
         rent1 = rent.ix[cond_1, ['houseType', 'rent']]
 
-        cond_2 = (rent['unit'] == '元/月') & (rent['rent'] < 200000)
+        cond_2 = (rent['unit'] == '元/月') & (rent['rent'] < 200000) & \
+                 (rent['rent'] > 0) & (rent['coveringArea'] > 0)
         rent.ix[cond_2, 'rent'] = rent.ix[cond_2, 'rent'] /\
                                   rent.ix[cond_2, 'coveringArea']/30
         rent2 = rent.ix[cond_2, ['houseType','rent']]
 
-        cond_3 = (rent['unit'] == '元/㎡/天') & (rent['rent'] < 100)
+        cond_3 = (rent['unit'] == '元/㎡/天') & (rent['rent'] < 100) & \
+                 (rent['rent'] > 0) & (rent['coveringArea'] > 0)
         rent3 = rent.ix[cond_3, ['houseType', 'rent']]
 
         rent = pd.concat([rent1,rent2,rent3])

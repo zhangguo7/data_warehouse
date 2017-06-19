@@ -42,8 +42,6 @@ def etl_fact_market(*args):
         # 按照商圈的id提取数据
         t0 = time.time()
         zone_grandparent = extract.zone_grandparent(grandParentId)
-        print('--------------------------')
-        print(zone_grandparent)
         t1 = time.time()
         rent = extract.rent_details(grandParentId)
         t2 = time.time()
@@ -56,7 +54,7 @@ def etl_fact_market(*args):
         t5 = time.time()
         clean = transform.merge(sample_tag_counts,rent,industry,zone_grandparent)
         t6 = time.time()
-        print('extract zone_grandparent costs %.2f s'  % (t1 - t0))
+        print('extract zone_grandparent costs  %.2f s' % (t1 - t0))
         print('extract rent             costs  %.2f s' % (t2 - t1))
         print('extract industry         costs  %.2f s' % (t3 - t2))
         print('calculate rent           costs  %.2f s' % (t4 - t3))
