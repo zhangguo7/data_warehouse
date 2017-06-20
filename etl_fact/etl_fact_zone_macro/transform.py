@@ -1,3 +1,0 @@
-
-class Transform(object):
-    pass
