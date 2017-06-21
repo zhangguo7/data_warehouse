@@ -118,7 +118,7 @@ COLLATE = utf8_general_ci;
 
 CREATE TABLE `fact_draw` (
 `drawId` int(10) NOT NULL AUTO_INCREMENT COMMENT '绘图样本ID',
-`drawGuid` varchar(50) NULL,
+`drawGuid` varchar(50) NOT NULL,
 `marketGuid` varchar(50) NULL,
 `drawZoneGuid` varchar(50) NULL,
 `divisionKey` int(10) NOT NULL COMMENT '行政区划键',
@@ -147,12 +147,13 @@ CREATE TABLE `fact_draw` (
 `drawRecruit` varchar(255) NULL COMMENT '正在招聘',
 `drawRenovation` varchar(255) NULL COMMENT '正在装修',
 `drawWarehouse` varchar(255) NULL COMMENT '商铺改为仓库',
+`drawClose` varchar(255) NULL,
+`drawNormal` varchar(255) NULL,
 PRIMARY KEY (`drawId`) ,
-UNIQUE INDEX `绘图样本ID` (`drawId` ASC) USING BTREE,
 INDEX `接收样本日期` (`receiveDateKey` ASC) USING BTREE,
 INDEX `行政区划` (`divisionKey` ASC) USING BTREE,
 INDEX `接收样本时间` (`receiveTimeKey` ASC) USING BTREE,
-UNIQUE INDEX `绘图样本guid` (`drawGuid` ASC) USING BTREE
+INDEX `绘图样本guid` (`drawGuid` ASC) USING BTREE
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
