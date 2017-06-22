@@ -22,3 +22,16 @@ def other2str(other):
         return str(other)
     except:
         return ''
+
+
+def angle2half(string):
+    """全角字符转半角字符
+    
+    :param string: 原始字符串
+    :return: 转换后的字符串
+    """
+    angles = 'ｚｘｃｖｂｎｍａｓｄｆｇｈｊｋｌｑｗｅｒｔｙｕｉｏｐＺＸＣＶＢＮＭＡＳＤＦＧＨＪＫＬＱＷＥＲＴＹＵＩＯＰ１２３４５６７８９０'
+    halfs = 'zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP1234567890'
+    for angle,half in zip(angles,halfs):
+        string= string.replace(angle,half)
+    return string
