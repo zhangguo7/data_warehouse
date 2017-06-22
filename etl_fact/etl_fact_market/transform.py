@@ -48,8 +48,8 @@ class Transform(object):
     def reshape_industry(self,industry):
         """重新构建industry
         
-        :param industry: 
-        :return: 
+        :param industry: 由1级、2级行业，纵向拼接成的数据框
+        :return: industry 字典
         """
         industry_1 = industry.ix[industry['industryPid'] == '0',
                                  ['industryId','industryName']]
@@ -93,7 +93,15 @@ class Transform(object):
         return industry
 
     def merge(self,sample_tag_counts,rent,industry,zone_grandparent):
-
+        """组合sample_tag_counts,rent,industry,zone_grandparent三个数据框
+        
+        用字典先封装，同时完成变量筛选和重命名的工作
+        :param sample_tag_counts: tag样本的计数表
+        :param rent: 租金表
+        :param industry: 行业数据表
+        :param zone_grandparent: 商圈所在的行政区划表
+        :return: merge组合结果
+        """
         def type_swich(int_x):
             mapping_dict = {
                 1:'街道',
@@ -107,7 +115,7 @@ class Transform(object):
                 return name.split(':')[0]
             else:
                 return name
-        print(zone_grandparent.ix[0,'grandParentName'])
+        # print(zone_grandparent.ix[0,'grandParentName'])
         merged_dict = {
             'marketGuid': sample_tag_counts['grandParentId'],
             'marketName': clean_market_name(zone_grandparent.ix[0,'grandParentName']),

@@ -74,7 +74,8 @@ class Extract(object):
               " districtName, "\
               " districtId " \
               "FROM CommercialZone_Sample " \
-              " WHERE grandParentId = '%s'"%grandParentId
+              " WHERE grandParentId = '%s'" \
+              " AND isDel = 0"%grandParentId
         # print(sql)
         zone_grandparent = pd.read_sql_query(sql=sql,con=self.engine_draw)
 
