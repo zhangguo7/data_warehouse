@@ -9,8 +9,9 @@ def other2int(other):
     try:
         return int(other)
     except:
-        return float('nan')
-		
+        return None
+
+
 def other2str(other):
     """其他类型转int类型
 
