@@ -76,23 +76,56 @@ class Extract(object):
               "FROM CommercialZone_Sample " \
               " WHERE grandParentId = '%s'" \
               " AND isDel = 0"%grandParentId
-        # print(sql)
         zone_grandparent = pd.read_sql_query(sql=sql,con=self.engine_draw)
 
         return zone_grandparent
 
-    def industry(self,grandParentId):
-        """抽取对应商圈的行业
+    def industry(self):
+        """抽取所有商圈所有样本的行业
         
-        :param grandParentId: 对应商圈的id
-        :return: 对应商圈的行业数据框
+        :return: 所有商圈的行业数据框
         """
-        sql = "SELECT " \
-              " attachId," \
-              " industryId," \
-              " industryName," \
-              " industryPid " \
-              "FROM CommercialZone_Industry " \
-              " WHERE attachId = '%s' AND isDel = 0" %grandParentId
+        sql = "SELECT "\
+              "  a.grandParentId, "\
+              "  b.industryNo_1, "\
+              "  b.industry_1, "\
+              "  c.industryNo_2, "\
+              "  c.industry_2, "\
+              "  COUNT (1) AS counting "\
+              "FROM "\
+              "  CommercialZone_Sample AS a "\
+              "INNER JOIN ( "\
+              "  SELECT "\
+              "    attachId AS guid, "\
+              "    industryId AS industryNo_1, "\
+              "    industryName AS industry_1 "\
+              "   FROM "\
+              "    CommercialZone_Industry "\
+              "   WHERE "\
+              "    isDel = 0 "\
+              "   AND type = 6 "\
+              "   AND industryPid = 0 " \
+              "   AND industryName != '无' "\
+              "  ) AS b ON a.guid = b.guid "\
+              "INNER JOIN ( "\
+              "  SELECT "\
+              "    attachId AS guid, "\
+              "    industryId AS industryNo_2, "\
+              "    industryName AS industry_2 "\
+              "  FROM "\
+              "    CommercialZone_Industry "\
+              "  WHERE "\
+              "    isDel = 0 "\
+              "  AND type = 6 "\
+              "  AND industryPid != 0 "\
+              ") AS c ON a.guid = c.guid "\
+              "GROUP BY" \
+              "  a.grandParentId, "\
+              "  b.industryNo_1, "\
+              "  b.industry_1, "\
+              "  c.industryNo_2, "\
+              "  c.industry_2 "\
+              "HAVING grandParentId != '' "\
+              "ORDER BY grandParentId,counting DESC"
         industry = pd.read_sql_query(sql=sql,con=self.engine_draw)
         return industry

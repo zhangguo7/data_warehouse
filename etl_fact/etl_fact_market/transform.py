@@ -1,12 +1,26 @@
+# -*- coding:utf-8 -*-
 import sys
 sys.path.append('../../tools')
+
+from collections import defaultdict
+
 import pandas as pd
 from tool_funcs import other2int
 
 class Transform(object):
-
+    """转换数据集类
+    
+    包含3个主要方法：
+    1、rent_calculate 租金计算
+    2、reshape_industry 重构行业数据并排序
+    3、compile_dfs 组合所提取的数据框
+    """
     def rent_calculate(self,rent):
-
+        """租金计算
+        
+        :param rent: 原始租金数据
+        :return: 包含住宅租金和写字楼租金的字典
+        """
         rent['rent'] = rent['rent'].apply(other2int)
         rent['coveringArea'] = rent['coveringArea'].apply(other2int)
 
@@ -26,73 +40,51 @@ class Transform(object):
         rent3 = rent.ix[cond_3, ['houseType', 'rent']]
 
         rent = pd.concat([rent1,rent2,rent3])
+        rent['rent'] = rent['rent'].apply(other2int)
 
         try:
             rent = rent.groupby(['houseType'])['rent'].mean()
         except Exception as e:
-            print(e)
+            print(e,'residence/office building rent will be filled with 0')
             return {'residence':0,'office_building':0}
-        try:
-            residence = rent['住宅区']
-        except:
-            residence = 0
 
         try:
-            office_building = rent['写字楼']
-        except:
-            office_building = 0
+            residence_rent = rent['住宅区']
+        except Exception as e:
+            print(e,'residence rent will be filled with 0')
+            residence_rent = 0
 
-        return {'residence':residence,'office_building':office_building}
+        try:
+            office_building_rent = rent['写字楼']
+        except Exception as e:
+            print(e,'office building rent will be filled with 0')
+            office_building_rent = 0
+
+        return {'residence':residence_rent,'office_building':office_building_rent}
 
 
-    def reshape_industry(self,industry):
-        """重新构建industry
+    def reshape_industry(self,industry_tmp):
+        """计算市场表的industry排名
         
-        :param industry: 所有样本级由1级、2级行业，纵向拼接成的数据框
-        :return: industry 字典
+        :param industry: 由1级、2级行业，纵向拼接成的数据框
+        :return: 包含一个商圈排名前三的1、2级行业的 industry 字典
         """
-        industry_1 = industry.ix[industry['industryPid'] == '0',
-                                 ['industryId','industryName']]
-        industry_2 = industry.ix[industry['industryPid'] != '0',
-                                 ['industryId', 'industryName','industryPid']]
-        industry_new = pd.merge(industry_1,industry_2,how='outer',
-                                left_on='industryId',right_on='industryPid')
+        k=0
+        industry_dict = defaultdict()
+        for j,industry_row in industry_tmp.iterrows():
+            k+=1
+            if k >3:break
+            industry_dict['industryNo_1_%d' % k] = industry_row['industryNo_1']
+            industry_dict['industry_1_%d' % k] = industry_row['industry_1']
+            industry_dict['industryNo_2_%d' % k] = industry_row['industryNo_2']
+            industry_dict['industry_2_%d' % k] = industry_row['industry_2']
 
-        industry_nums = len(industry_new)
+        return industry_dict
 
-        industry_1_1 = industry_new.ix[0, 'industryName_x'] if industry_nums > 0 else None
-        industryNo_1_1 = industry_new.ix[0, 'industryId_x'] if industry_nums > 0 else None
-        industry_2_1 = industry_new.ix[0, 'industryName_y'] if industry_nums > 0 else None
-        industryNo_2_1 = industry_new.ix[0, 'industryId_y'] if industry_nums > 0 else None
 
-        industry_1_2 = industry_new.ix[1, 'industryName_x'] if industry_nums > 1 else None
-        industryNo_1_2 = industry_new.ix[1, 'industryId_x'] if industry_nums > 1 else None
-        industry_2_2 = industry_new.ix[1, 'industryName_y'] if industry_nums > 1 else None
-        industryNo_2_2 = industry_new.ix[1, 'industryId_y'] if industry_nums > 1 else None
-
-        industry_1_3 = industry_new.ix[2, 'industryName_x'] if industry_nums > 2 else None
-        industryNo_1_3 = industry_new.ix[2, 'industryId_x'] if industry_nums > 2 else None
-        industry_2_3 = industry_new.ix[2, 'industryName_y'] if industry_nums > 2 else None
-        industryNo_2_3 = industry_new.ix[2, 'industryId_y'] if industry_nums > 2 else None
-
-        industry = {
-            'industry_1_1':industry_1_1,
-            'industry_1_2':industry_1_2,
-            'industry_1_3':industry_1_3,
-            'industry_2_1':industry_2_1,
-            'industry_2_2':industry_2_2,
-            'industry_2_3':industry_2_3,
-            'industryNo_1_1':industryNo_1_1,
-            'industryNo_1_2':industryNo_1_2,
-            'industryNo_1_3':industryNo_1_3,
-            'industryNo_2_1':industryNo_2_1,
-            'industryNo_2_2':industryNo_2_2,
-            'industryNo_2_3':industryNo_2_3
-        }
-
-        return industry
-
-    def merge(self,sample_tag_counts,rent,industry,zone_grandparent):
+    def compile_dfs(self,sample_tag_counts,rent,industry_dict,zone_grandparent):
+        # print(list(map(len,[sample_tag_counts,rent,industry_dict,zone_grandparent])))
+        # print(sample_tag_counts,rent,industry_dict,zone_grandparent)
         """组合sample_tag_counts,rent,industry,zone_grandparent三个数据框
         
         用字典先封装，同时完成变量筛选和重命名的工作
@@ -115,7 +107,6 @@ class Transform(object):
                 return name.split(':')[0]
             else:
                 return name
-        # print(zone_grandparent.ix[0,'grandParentName'])
         merged_dict = {
             'marketGuid': sample_tag_counts['grandParentId'],
             'marketName': clean_market_name(zone_grandparent.ix[0,'grandParentName']),
@@ -138,17 +129,17 @@ class Transform(object):
             'marketOfficeBuildingNum': sample_tag_counts['officeBuilding'],
             'marketResidenceRent': rent['residence'],
             'marketOfficeBuildingRent': rent['office_building'],
-            'marketIndustry_1_1': industry['industry_1_1'],
-            'marketIndustry_1_2': industry['industry_1_2'],
-            'marketIndustry_1_3': industry['industry_1_3'],
-            'marketIndustry_2_1': industry['industry_2_1'],
-            'marketIndustry_2_2': industry['industry_2_2'],
-            'marketIndustry_2_3': industry['industry_2_3'],
-            'marketIndustryNo_1_1': industry['industryNo_1_1'],
-            'marketIndustryNo_1_2': industry['industryNo_1_2'],
-            'marketIndustryNo_1_3': industry['industryNo_1_3'],
-            'marketIndustryNo_2_1': industry['industryNo_2_1'],
-            'marketIndustryNo_2_2': industry['industryNo_2_2'],
-            'marketIndustryNo_2_3': industry['industryNo_2_3']
+            'marketIndustry_1_1': industry_dict.get('industry_1_1'),
+            'marketIndustry_1_2': industry_dict.get('industry_1_2'),
+            'marketIndustry_1_3': industry_dict.get('industry_1_3'),
+            'marketIndustry_2_1': industry_dict.get('industry_2_1'),
+            'marketIndustry_2_2': industry_dict.get('industry_2_2'),
+            'marketIndustry_2_3': industry_dict.get('industry_2_3'),
+            'marketIndustryNo_1_1': industry_dict.get('industryNo_1_1'),
+            'marketIndustryNo_1_2': industry_dict.get('industryNo_1_2'),
+            'marketIndustryNo_1_3': industry_dict.get('industryNo_1_3'),
+            'marketIndustryNo_2_1': industry_dict.get('industryNo_2_1'),
+            'marketIndustryNo_2_2': industry_dict.get('industryNo_2_2'),
+            'marketIndustryNo_2_3': industry_dict.get('industryNo_2_3')
         }
         return pd.DataFrame(merged_dict)

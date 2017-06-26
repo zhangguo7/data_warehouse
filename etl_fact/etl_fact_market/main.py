@@ -3,6 +3,8 @@ import sys
 
 import time
 
+import pandas as pd
+from collections import defaultdict
 sys.path.append('../../tools')
 import configparser
 
@@ -24,46 +26,40 @@ def etl_fact_market(*args):
     load = Load(engine_target)
 
     # 抽取已经经过etl的商圈
+    # t0 = time.time()
     done_market = extract.done_market()
+    # t1 = time.time()
     df_tag_counts = extract.tag_counts()
-
+    # t2 = time.time()
+    df_industry = extract.industry()
+    # t3 = time.time()
+    # print('extract done samples %.2f s'% (t1 - t0))
+    # print('extract tag counts %.2f s' % (t2 - t1))
+    # print('extract industry %.2f s' % (t3 - t2))
     for i,sample_tag_counts in df_tag_counts.iterrows():
 
         grandParentId = sample_tag_counts['grandParentId']
-
         if len(grandParentId) != 36:  # 判断grandParentId的有效性
             print(i,grandParentId,'is not valid !')
             continue
-
-        if grandParentId in done_market:  # 判断该商圈是已经经过etl
-            print(i,grandParentId,'etl before !')
+        elif grandParentId in done_market:  # 判断该商圈是已经经过etl
+            print(i, grandParentId, 'etl before !')
             continue
 
-        # 按照商圈的id提取数据
-        t0 = time.time()
+        # 抽取数据
         zone_grandparent = extract.zone_grandparent(grandParentId)
-        t1 = time.time()
+        if len(zone_grandparent) == 0:
+            print(i, grandParentId, 'has no draw samples !')
+            continue
         rent = extract.rent_details(grandParentId)
-        t2 = time.time()
-        industry = extract.industry(grandParentId)
-        t3 = time.time()
+        industry_tmp = df_industry[df_industry['grandParentId'] == grandParentId]
         # 转换数据
         rent = transform.rent_calculate(rent)
-        t4 = time.time()
-        industry = transform.reshape_industry(industry)
-        t5 = time.time()
-        clean = transform.merge(sample_tag_counts,rent,industry,zone_grandparent)
-        t6 = time.time()
-        print('extract zone_grandparent costs  %.2f s' % (t1 - t0))
-        print('extract rent             costs  %.2f s' % (t2 - t1))
-        print('extract industry         costs  %.2f s' % (t3 - t2))
-        print('calculate rent           costs  %.2f s' % (t4 - t3))
-        print('reshape industry         costs  %.2f s' % (t5 - t4))
-        print('merge                    costs  %.2f s' % (t6 - t5))
-
+        industry_dict = transform.reshape_industry(industry_tmp)
+        # 组合数据
+        clean = transform.compile_dfs(sample_tag_counts,rent,industry_dict,zone_grandparent)
         try:
             load.loading(clean)
-            print(i, clean.ix[0, ['marketGuid', 'marketName']],'etl completed !')
         except Exception as e:
             print(e)
 
