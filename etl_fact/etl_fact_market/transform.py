@@ -48,7 +48,7 @@ class Transform(object):
     def reshape_industry(self,industry):
         """重新构建industry
         
-        :param industry: 由1级、2级行业，纵向拼接成的数据框
+        :param industry: 所有样本级由1级、2级行业，纵向拼接成的数据框
         :return: industry 字典
         """
         industry_1 = industry.ix[industry['industryPid'] == '0',

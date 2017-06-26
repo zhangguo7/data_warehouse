@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 
 class Load(object):
     def __init__(self,engine_target):
