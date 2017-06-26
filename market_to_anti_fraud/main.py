@@ -38,7 +38,9 @@ def market_to_api2(source,target,record_file='api2.record'):
     api2_df = transform.merge(reshaped_market,aggregated_samples)
 
     # 装载数据
-    load.loading(api2_df)
+    # load.loading(api2_df)
+    print(len(api2_df))
+
 
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
@@ -47,4 +49,4 @@ if __name__ == '__main__':
     source = mysql_engine(**db_cfg['dw_test'])
     target = mysql_engine(**db_cfg['anti_fraud'])
 
-    market_to_api2(source,target)
+    market_to_api2(source, target)
