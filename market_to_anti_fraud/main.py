@@ -39,10 +39,10 @@ def market_to_api2(source,target,record_file='api2.record'):
     api2_df = transform.compile(reshaped_market,aggregated_samples)
 
     # 装载数据
-    print(len(api2_df))
     load.loading(api2_df)
 
 if __name__ == '__main__':
+
     db_cfg = configparser.ConfigParser()
     db_cfg.read('db.cfg')
 
