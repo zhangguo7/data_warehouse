@@ -1,10 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
+import logging,logging.config
 
-import time
-
-import pandas as pd
-from collections import defaultdict
 sys.path.append('../../tools')
 import configparser
 
@@ -26,30 +23,31 @@ def etl_fact_market(*args):
     load = Load(engine_target)
 
     # 抽取已经经过etl的商圈
-    # t0 = time.time()
     done_market = extract.done_market()
-    # t1 = time.time()
     df_tag_counts = extract.tag_counts()
-    # t2 = time.time()
     df_industry = extract.industry()
-    # t3 = time.time()
-    # print('extract done samples %.2f s'% (t1 - t0))
-    # print('extract tag counts %.2f s' % (t2 - t1))
-    # print('extract industry %.2f s' % (t3 - t2))
-    for i,sample_tag_counts in df_tag_counts.iterrows():
+    has_dealed = []
 
+    for i,sample_tag_counts in df_tag_counts.iterrows():
         grandParentId = sample_tag_counts['grandParentId']
         if len(grandParentId) != 36:  # 判断grandParentId的有效性
-            print(i,grandParentId,'is not valid !')
+            logging.error('Round %d, %s is not valid.'%(i,grandParentId))
             continue
+
         elif grandParentId in done_market:  # 判断该商圈是已经经过etl
-            print(i, grandParentId, 'etl before !')
+            logging.warning('Round %d, %s etl before'%(i,grandParentId))
             continue
+
+        if grandParentId in has_dealed:
+            logging.warning('Round %d, %s etl before' % (i, grandParentId))
+            continue
+        else:
+            has_dealed.append(grandParentId)
 
         # 抽取数据
         zone_grandparent = extract.zone_grandparent(grandParentId)
         if len(zone_grandparent) == 0:
-            print(i, grandParentId, 'has no draw samples !')
+            logging.warning('Round %d, has no draw samples'%i)
             continue
         rent = extract.rent_details(grandParentId)
         industry_tmp = df_industry[df_industry['grandParentId'] == grandParentId]
@@ -61,14 +59,15 @@ def etl_fact_market(*args):
         try:
             load.loading(clean)
         except Exception as e:
-            print(e)
+            logging.error('Round %d, %s'%(i,e))
 
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
     db_cfg.read('../../db.cfg')
 
+    logging.config.fileConfig('log.cfg')
     engine_zone_macro = mysql_engine(**db_cfg['zone_macro'])
-    engine_draw = mssql_engine(**db_cfg['ht'])
+    engine_draw = mssql_engine(**db_cfg['ht_test'])
     engine_target = mysql_engine(**db_cfg['dw_test'])
 
     etl_fact_market(engine_zone_macro,engine_draw,engine_target)

@@ -83,8 +83,6 @@ class Transform(object):
 
 
     def compile_dfs(self,sample_tag_counts,rent,industry_dict,zone_grandparent):
-        # print(list(map(len,[sample_tag_counts,rent,industry_dict,zone_grandparent])))
-        # print(sample_tag_counts,rent,industry_dict,zone_grandparent)
         """组合sample_tag_counts,rent,industry,zone_grandparent三个数据框
         
         用字典先封装，同时完成变量筛选和重命名的工作
