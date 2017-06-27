@@ -1,6 +1,9 @@
 # coding:utf-8
 import os,sys
 
+import logging
+
+
 class Load(object):
     """ api2 数据装载类
     
@@ -16,12 +19,13 @@ class Load(object):
         若装载成功，更新record文件
         :param df: 已经完成et的数据框
         """
+        df.to_csv('tmp.csv',index=False)
         try:
             df.to_sql(name='API_2', con=self.target_engine,
                       if_exists='append', index=False)
-            print('ETL secceed, %d obs. loaded in !'% len(df) )
-        except:
-            sys.stderr('ETL failed, when loaded in !' % len(df))
+            logging.info('ETL secceed, %d obs. loaded in'% len(df))
+        except Exception as e:
+            logging.error('%s,ETL failed, when loaded in'%e)
             os.remove(self.record_file + '.tmp')
         else:
             os.rename(self.record_file+'.tmp',self.record_file)

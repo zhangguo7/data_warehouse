@@ -10,6 +10,7 @@
 4. load.py        装载数据的class
 """
 import configparser
+import logging,logging.config
 from extract import Extract
 from transform import Transform
 from load import Load
@@ -35,16 +36,17 @@ def market_to_api2(source,target,record_file='api2.record'):
     # 转换数据
     reshaped_market = transform.reshape_market(market_df)
     aggregated_samples = transform.aggregate_from_samples(draw_samples)
-    api2_df = transform.merge(reshaped_market,aggregated_samples)
+    api2_df = transform.compile(reshaped_market,aggregated_samples)
 
     # 装载数据
-    # load.loading(api2_df)
     print(len(api2_df))
-
+    load.loading(api2_df)
 
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()
     db_cfg.read('db.cfg')
+
+    logging.config.fileConfig('log.cfg')
 
     source = mysql_engine(**db_cfg['dw_test'])
     target = mysql_engine(**db_cfg['anti_fraud'])

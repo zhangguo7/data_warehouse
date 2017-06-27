@@ -1,4 +1,5 @@
 # coding:utf-8
+import logging
 import numpy as np
 import pandas as pd
 
@@ -16,7 +17,7 @@ class Transform(object):
             num = int(num)
             return num if num > 0 else 0
         except Exception as e:
-            print(e,'_nums_clean input error !')
+            logging.warning('%s, _nums_clean input error !'%e)
             return 0
 
     def reshape_market(self,market_df):
@@ -44,11 +45,12 @@ class Transform(object):
         ]
         for var in nan_vars:
             market_df[var] = market_df[var].apply(self._nums_clean)
+        logging.info('Secceed to transform market_df,size = %d ' % len(market_df))
 
         return market_df
 
     def aggregate_from_samples(self,draw_samples):
-        """
+        """将draw_samples进行分类汇总
         
         :param draw_samples: 绘图样本经营状态
         :return: 
@@ -95,9 +97,11 @@ class Transform(object):
         aggregate_df['renovationRate'] = aggregate_df['renovationRate'].apply(self._str_rate)
         aggregate_df['transferRate'] = aggregate_df['transferRate'].apply(self._str_rate)
         aggregate_df['recruitmentRate'] = aggregate_df['recruitmentRate'].apply(self._str_rate)
+
+        logging.info('Secceed to transform aggregate_df,size = %d '%len(aggregate_df))
         return aggregate_df
 
-    def merge(self,reshaped_market,aggregated_samples):
+    def compile(self,reshaped_market,aggregated_samples):
         """
         
         :param reshaped_market: 经过重新构造的市场表
@@ -105,7 +109,7 @@ class Transform(object):
         :return: 可以进入 load 步骤的数据框
         """
         merged_df = pd.merge(reshaped_market, aggregated_samples,
-                      left_on='marketGuid', right_index=True)
+                             how='left',left_on='marketGuid', right_index=True)
 
         api2_dict = {
             'relId': merged_df['marketGuid'],

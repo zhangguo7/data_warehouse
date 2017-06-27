@@ -1,6 +1,6 @@
 # coding:utf-8
 import pandas as pd
-
+import logging
 
 class Extract(object):
     """抽取原始数据类
@@ -24,10 +24,10 @@ class Extract(object):
             with open(self.record_file, 'r') as f:
                 begin_id = int(f.read())
         except FileNotFoundError as e:
-            print(e)
+            logging.warning(e)
             begin_id = 0
         except ValueError as e:
-            print(e,'app2.record has no begin id !')
+            logging.error('%s, app2.record has no begin id'%e)
             begin_id = 0
 
         select_market = "SELECT * " \
@@ -43,6 +43,7 @@ class Extract(object):
         with open(self.record_file+'.tmp','w') as f:
             f.write(str(max(market_df['marketId'])))
 
+        logging.info('Secceed to extract market_df, size = %d'%len(market_df))
         return market_df
 
     def draw_samples(self):
@@ -60,4 +61,6 @@ class Extract(object):
               " drawNormal," \
               " drawClose " \
               "FROM fact_draw"
-        return pd.read_sql_query(sql=sql,con=self.source_engine)
+        draw_samples_df = pd.read_sql_query(sql=sql, con=self.source_engine)
+        logging.info('Secceed to extract draw_samples_df, size = %d' % len(draw_samples_df))
+        return draw_samples_df
