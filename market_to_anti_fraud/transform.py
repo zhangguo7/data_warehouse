@@ -101,7 +101,7 @@ class Transform(object):
         logging.info('Secceed to transform aggregate_df,size = %d '%len(aggregate_df))
         return aggregate_df
 
-    def compile(self,reshaped_market,aggregated_samples):
+    def compile_dfs(self,reshaped_market,aggregated_samples):
         """
         
         :param reshaped_market: 经过重新构造的市场表

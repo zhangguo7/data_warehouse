@@ -36,7 +36,7 @@ def market_to_api2(source,target,record_file='api2.record'):
     # 转换数据
     reshaped_market = transform.reshape_market(market_df)
     aggregated_samples = transform.aggregate_from_samples(draw_samples)
-    api2_df = transform.compile(reshaped_market,aggregated_samples)
+    api2_df = transform.compile_dfs(reshaped_market,aggregated_samples)
 
     # 装载数据
     load.loading(api2_df)
