@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 import sys
+
+import logging
+
 sys.path.append('../../tools')
 
 from collections import defaultdict
@@ -45,19 +48,19 @@ class Transform(object):
         try:
             rent = rent.groupby(['houseType'])['rent'].mean()
         except Exception as e:
-            print(e,'residence/office building rent will be filled with 0')
+            logging.warning('%s, rent will be filled with 0'%e)
             return {'residence':0,'office_building':0}
 
         try:
             residence_rent = rent['住宅区']
         except Exception as e:
-            print(e,'residence rent will be filled with 0')
+            logging.warning('%s, rent will be filled with 0'%e)
             residence_rent = 0
 
         try:
             office_building_rent = rent['写字楼']
         except Exception as e:
-            print(e,'office building rent will be filled with 0')
+            logging.warning('%s, rent will be filled with 0'%e)
             office_building_rent = 0
 
         return {'residence':residence_rent,'office_building':office_building_rent}

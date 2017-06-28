@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import logging
 import pandas as pd
 
 
@@ -36,8 +37,10 @@ class Extract(object):
         """
         sql = "SELECT * " \
               "FROM tag_counts " \
-              " WHERE type != 1 "
+              " WHERE type != 1 " \
+              " AND id > %d" %begin_id
         tag_counts = pd.read_sql_query(sql=sql,con=self.engine_zone_macro)
+        logging.info('Secceed to extract tag_counts, size = %d'%len(tag_counts))
 
         return tag_counts
 
@@ -58,6 +61,8 @@ class Extract(object):
               "AND grandParentId = '%s'"%grandParentId
 
         rent_details = pd.read_sql_query(sql=sql,con=self.engine_zone_macro)
+        logging.info('Secceed to extract rent_details,size = %d' % len(rent_details))
+
         return rent_details
 
     def zone_grandparent(self,grandParentId):
@@ -128,4 +133,6 @@ class Extract(object):
               "HAVING grandParentId != '' "\
               "ORDER BY grandParentId,counting DESC"
         industry = pd.read_sql_query(sql=sql,con=self.engine_draw)
+        logging.info('Secceed to extract industry,size = %d' % len(industry))
+
         return industry

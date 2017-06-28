@@ -15,7 +15,6 @@ def etl_fact_market(*args):
     """fact_market表主函数
     
     :param args: 按位参数engine_zone_macro,engine_draw,engine_target
-    :return: 
     """
     # 初始化 extract,transform和load三个对象
     extract = Extract(engine_zone_macro,engine_draw,engine_target)
@@ -29,9 +28,10 @@ def etl_fact_market(*args):
     has_dealed = []
 
     for i,sample_tag_counts in df_tag_counts.iterrows():
+
         grandParentId = sample_tag_counts['grandParentId']
         if len(grandParentId) != 36:  # 判断grandParentId的有效性
-            logging.error('Round %d, %s is not valid.'%(i,grandParentId))
+            logging.warning('Round %d, %s is invalid ,skipped.'%(i,grandParentId))
             continue
 
         elif grandParentId in done_market:  # 判断该商圈是已经经过etl
@@ -58,6 +58,7 @@ def etl_fact_market(*args):
         clean = transform.compile_dfs(sample_tag_counts,rent,industry_dict,zone_grandparent)
         try:
             load.loading(clean)
+            logging.info('Round %d, %s etl secceed'%(i,grandParentId))
         except Exception as e:
             logging.error('Round %d, %s'%(i,e))
 
