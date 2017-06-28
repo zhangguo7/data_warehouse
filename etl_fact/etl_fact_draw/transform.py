@@ -27,21 +27,17 @@ from tool_funcs import other2int,angle2half
 class Transform(object):
     """转换绘图数据"""
 
-    def __init__(self, df_industry, df_draw):
-        self.df_industry = df_industry
-        self.df_draw = df_draw
-
-    def _filter_ind1_ind2(self):
+    def _filter_ind1_ind2(self,df_industry):
         """筛选出一级行业和二级行业"""
-        df_industry1 = self.df_industry.ix[self.df_industry['industryPid'] == '0',:]
-        df_industry2 = self.df_industry.ix[self.df_industry['industryPid'] != '0', :]
+        df_industry1 = df_industry.ix[df_industry['industryPid'] == '0',:]
+        df_industry2 = df_industry.ix[df_industry['industryPid'] != '0', :]
         return df_industry1, df_industry2
 
-    def _merge_ind_draw(self, df_industry1, df_industry2):
+    def _merge_ind_draw(self,df_draw, df_industry1, df_industry2):
         """将一级、二级行业增加到对应的新列"""
-        self.df_draw = pd.merge(self.df_draw,df_industry1,
+        df_draw = pd.merge(df_draw,df_industry1,
                                 left_on='guid',right_on='attachId')
-        merge_ind = pd.merge(self.df_draw,df_industry2,
+        merge_ind = pd.merge(df_draw,df_industry2,
                              left_on='guid',right_on='attachId')
         return merge_ind
 
@@ -56,7 +52,7 @@ class Transform(object):
         for var in add_vars:
             df[var] = None
         # 转租、转让
-        df.ix[df['operatingState'].apply(lambda x: '5' in str(x)),'drawSublease'] = '转租、转让'
+        df.ix[df['operatingState'].apply(lambda x: '5' in str(x)), 'drawSublease'] = '转租、转让'
         df.ix[df['operatingState2'].apply(lambda x: '1' in str(x)), 'drawSublease'] = '转租、转让'
         # 装修
         df.ix[df['operatingState'].apply(lambda x: '6' in str(x)), 'drawRenovation'] = '装修'
@@ -100,10 +96,10 @@ class Transform(object):
     def _trans_deco(self,df):
         def mapping(x):
             deco_dict = {
-                1:'无装修',
-                2:'简单装修',
-                3:'精装修',
-                4:'无法观测'
+                1: '无装修',
+                2: '简单装修',
+                3: '精装修',
+                4: '无法观测'
             }
             return deco_dict.get(x)
         df['decorateDescrption'] = df['decorateDescrption'].apply(mapping)
@@ -131,8 +127,7 @@ class Transform(object):
             try:
                 zbh = re.search('自编号*\d+号*',dp).group()
                 new_dp = dp.replace(zbh,'').replace('|','').replace('#','号')
-            except Exception as e:
-                # print(e)
+            except:
                 zbh = ''
                 new_dp=dp
 
@@ -140,23 +135,6 @@ class Transform(object):
             selfnum_lst.append(zbh)
 
         return new_dp_lst, selfnum_lst
-
-
-    def _del_unnecessary_vars(self,df):
-        """删除多余的变量
-
-        :param df: 未删除多余变量的数据框
-        :return: 删除多余变量的数据框
-        """
-        unnecessary_vars = [
-            'attachId_x','attachId_y','industryPid_x','industryPid_y',
-            'operatingState','operatingState1','operatingState2',
-            'inputDate','receiveDate','sampleMobile', 'sampleTel',
-            'provinceName','cityName','districtName','grandParentName'
-        ]
-        for var in unnecessary_vars:
-            del df[var]
-        return df
 
     def _doorplate_selfnum(self,df):
         """从门牌号中提取自编号
@@ -174,29 +152,15 @@ class Transform(object):
 
     def _trans_has_licence(self,df):
         df['isBusinessLicence'] = df['isBusinessLicence'].\
-            apply(lambda x:'悬挂' if x == 1 else '未悬挂')
-        return df
-
-    def _rename(self,df):
-
-        """重命名函数
-
-        :param df: 原始变量名的数据框
-        :return: 更新了变量名的数据框
-        """
-        new_names = [
-            'drawGuid','marketGuid','drawZoneGuid','divisionKey','drawMateAddress',
-            'drawDoorPlate','drawSelfNum','drawCompanyName','drawLatitude',
-            'drawLongitude','drawPhotoCount','drawShopCount','drawDecorate',
-            'drawHagLicence','drawIndustryNo_1','drawIndustryName_1','drawindustryNo_2',
-            'drawIndustryName_2','drawSublease','drawEmpty','drawRecruit',
-            'drawRenovation','drawWarehouse','drawClose','drawNormal','receiveDateKey','receiveTimeKey',
-            'inputDateKey','inputTimeKey','drawTel','drawCompanyAddress'
-        ]
-        df.columns = new_names
+            apply(lambda x: '悬挂' if x == 1 else '未悬挂')
         return df
 
     def _concat_companyaddress(self,df):
+        """拼接地址
+
+        :param df:
+        :return:
+        """
         def split_grandParentName(x):
             x = str(x)
             if x.find(':') != -1:
@@ -205,22 +169,22 @@ class Transform(object):
         df['grandParentName'] = df['grandParentName'].apply(split_grandParentName)
 
         city_lst = [
-            '东莞市','中山市',
-            '北京市辖区','北京的县',
-            '重庆市辖区','重庆的县',
-            '上海市辖区','上海市的县',
-            '天津市辖区','天津市的县'
+            '东莞市', '中山市',
+            '北京市辖区', '北京的县',
+            '重庆市辖区', '重庆的县',
+            '上海市辖区', '上海市的县',
+            '天津市辖区', '天津市的县'
         ]
-        df['cityName'] = df['cityName'].apply(lambda x:'' if x in city_lst else x)
+        df['cityName'] = df['cityName'].apply(lambda x: '' if x in city_lst else x)
         df['drawCompanyAddress'] = df['provinceName'] + df['cityName'] + \
                                    df['districtName'] + df['grandParentName']
 
         return df
 
-    def transform_main(self):
+    def transform_main(self,df_industry, df_draw):
         # 转换行业
-        df_ind1, df_ind2 = self._filter_ind1_ind2()
-        merge_ind = self._merge_ind_draw(df_ind1,df_ind2)
+        df_ind1, df_ind2 = self._filter_ind1_ind2(df_industry)
+        merge_ind = self._merge_ind_draw(df_draw,df_ind1,df_ind2)
         # 转换经营状态
         df = self._deal_operatingState(merge_ind)
         # 增加日期和时间键
@@ -235,12 +199,41 @@ class Transform(object):
         df = self._trans_deco(df)
         # 悬挂营业执照
         df = self._trans_has_licence(df)
-        # 删除多余的变量
-        df = self._del_unnecessary_vars(df)
-        # 重命名
-        df = self._rename(df)
 
         # 数据类型转换
-        df['divisionKey'] = df['divisionKey'].apply(other2int)
-        df = df[df['divisionKey'] == None]
-        return df
+        df['districtId'] = df['districtId'].apply(other2int)
+        df = df[-df['districtId'].isnull()]
+        clean_dicf = {
+            'drawGuid': df['guid'],
+            'marketGuid': df['grandParentId'],
+            'drawZoneGuid': df['zoneGuid'],
+            'divisionKey': df['districtId'],
+            'drawMateAddress': df['mateAddress'],
+            'drawDoorPlate': df['doorPlate'],
+            'drawSelfNum': df['selfNum'],
+            'drawCompanyName': df['sampleName'],
+            'drawLatitude': df['bdLatitude'],
+            'drawLongitude': df['bdlongitude'],
+            'drawPhotoCount': df['photoCount'],
+            'drawShopCount': df['shopCount'],
+            'drawDecorate': df['decorateDescrption'],
+            'drawHagLicence': df['isBusinessLicence'],
+            'drawIndustryNo_1': df['industryId_x'],
+            'drawIndustryName_1': df['industryName_x'],
+            'drawindustryNo_2': df['industryId_y'],
+            'drawIndustryName_2': df['industryName_y'],
+            'drawSublease': df['drawSublease'],
+            'drawEmpty': df['drawEmpty'],
+            'drawRecruit': df['drawRecruit'],
+            'drawRenovation': df['drawRenovation'],
+            'drawWarehouse': df['drawWarehouse'],
+            'drawClose': df['drawClose'],
+            'drawNormal': df['drawNormal'],
+            'receiveDateKey': df['receiveDateKey'],
+            'receiveTimeKey': df['receiveTimeKey'],
+            'inputDateKey': df['inputDateKey'],
+            'inputTimeKey': df['inputTimeKey'],
+            'drawTel': df['drawTel'],
+            'drawCompanyAddress': df['drawCompanyAddress']
+        }
+        return pd.DataFrame(clean_dicf)

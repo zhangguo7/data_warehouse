@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import pandas as pd
+import logging
 
 
 class Extract(object):
@@ -10,9 +11,10 @@ class Extract(object):
     _extract_industry和_extract_draw为内部函数
     最后用extract_main进行了封装
     """
-    def __init__(self,engine,chunksize):
+    def __init__(self,engine,chunksize,record_file):
         self.engine = engine
         self.chunksize = chunksize
+        self.record_file = record_file
 
     def _extract_industry(self):
         """抽取行业表
@@ -34,7 +36,16 @@ class Extract(object):
 
     def _extract_draw(self):
         """抽取绘图样本"""
+        try:
+            with open(self.record_file, 'r') as f:
+                begin_id = int(f.read())
+        except (FileNotFoundError, ValueError) as e:
+            logging.warning(e)
+            begin_id = 0
+            logging.error('%s, no record before, begine id default 0' %e)
+
         draw_sql = "SELECT " \
+                   " id," \
                    " guid," \
                    " provinceName," \
                    " cityName," \
@@ -64,7 +75,9 @@ class Extract(object):
                    " WHERE guid != '' " \
                    " AND cityName != '成都市'" \
                    " AND isDel = 0" \
-                   " AND checkStatus IN (1,3)"
+                   " AND checkStatus IN (1,3)" \
+                   " AND id > %d" \
+                   " ORDER BY id" %begin_id
 
         return pd.read_sql_query(sql=draw_sql,con=self.engine,chunksize=self.chunksize)
 
