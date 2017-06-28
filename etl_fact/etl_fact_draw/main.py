@@ -33,12 +33,12 @@ def etl_fact_draw_main(engine_source, engine_target,chunksize=5000,record_file='
         try:
             load.load_main(df_clean)
             logging.info('Round %d, loading %d obs. Secceed '%(k,len(df_clean)))
-            print(df_draw.columns)
             with open(record_file,'w') as f:
                 f.write(str(max(df_draw['id'])))
         except Exception as e:
             df_clean[['drawGuid', 'marketGuid']].to_csv('unsecceed_samples.csv', mode='a',index=False)
             logging.error('Round %d,%s' %(k,e))
+            raise
 
 if __name__ == '__main__':
     db_cfg = configparser.ConfigParser()

@@ -78,8 +78,9 @@ class Extract(object):
                    " AND checkStatus IN (1,3)" \
                    " AND id > %d" \
                    " ORDER BY id" %begin_id
-
-        return pd.read_sql_query(sql=draw_sql,con=self.engine,chunksize=self.chunksize)
+        draw_ge = pd.read_sql_query(sql=draw_sql, con=self.engine, chunksize=self.chunksize)
+        logging.info('Secceed to extract draw_ge as gen, chunksize=%d'%self.chunksize)
+        return draw_ge
 
     def extract_main(self):
         """extract步骤的主函数

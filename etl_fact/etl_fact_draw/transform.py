@@ -128,8 +128,8 @@ class Transform(object):
                 zbh = re.search('自编号*\d+号*',dp).group()
                 new_dp = dp.replace(zbh,'').replace('|','').replace('#','号')
             except:
-                zbh = ''
-                new_dp=dp
+                zbh = None
+                new_dp=dp if dp != 'None' else None
 
             new_dp_lst.append(new_dp)
             selfnum_lst.append(zbh)
@@ -201,9 +201,11 @@ class Transform(object):
         df = self._trans_has_licence(df)
 
         # 数据类型转换
+        df['sampleName'] = df['sampleName'].apply(lambda x: str(x)[:50])
         df['districtId'] = df['districtId'].apply(other2int)
         df = df[-df['districtId'].isnull()]
-        clean_dicf = {
+
+        clean_dict = {
             'drawGuid': df['guid'],
             'marketGuid': df['grandParentId'],
             'drawZoneGuid': df['zoneGuid'],
@@ -236,4 +238,4 @@ class Transform(object):
             'drawTel': df['drawTel'],
             'drawCompanyAddress': df['drawCompanyAddress']
         }
-        return pd.DataFrame(clean_dicf)
+        return pd.DataFrame(clean_dict)
