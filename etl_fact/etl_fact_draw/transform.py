@@ -89,8 +89,8 @@ class Transform(object):
 
         df['receiveDateKey'] = df['receiveDate'].apply(_extract_datekey)
         df['receiveTimeKey'] = df['receiveDate'].apply(_extract_timekey)
-        df['inputDateKey'] = df['receiveDate'].apply(_extract_datekey)
-        df['inputTimeKey'] = df['receiveDate'].apply(_extract_timekey)
+        df['inputDateKey'] = df['inputDate'].apply(_extract_datekey)
+        df['inputTimeKey'] = df['inputDate'].apply(_extract_timekey)
         return df
 
     def _trans_deco(self,df):
@@ -158,8 +158,8 @@ class Transform(object):
     def _concat_companyaddress(self,df):
         """拼接地址
 
-        :param df:
-        :return:
+        :param df: 未经地址转换的数据框
+        :return: 经过地址转换的数据框
         """
         def split_grandParentName(x):
             x = str(x)
@@ -167,6 +167,10 @@ class Transform(object):
                 return x.split(':')[0]
             return x
         df['grandParentName'] = df['grandParentName'].apply(split_grandParentName)
+        # 清理
+
+        df.ix[df['cityName'] == '东莞市', 'districtId'] = '441900'
+        df.ix[(df['cityName'] == '台州市') & (df['districtName'] == ''), 'districtId'] = '331003'
 
         city_lst = [
             '东莞市', '中山市',
@@ -182,6 +186,7 @@ class Transform(object):
         return df
 
     def transform_main(self,df_industry, df_draw):
+
         # 转换行业
         df_ind1, df_ind2 = self._filter_ind1_ind2(df_industry)
         merge_ind = self._merge_ind_draw(df_draw,df_ind1,df_ind2)
@@ -200,11 +205,10 @@ class Transform(object):
         # 悬挂营业执照
         df = self._trans_has_licence(df)
 
-        # 数据类型转换
         df['sampleName'] = df['sampleName'].apply(lambda x: str(x)[:50])
         df['districtId'] = df['districtId'].apply(other2int)
-        df = df[-df['districtId'].isnull()]
 
+        # 重命名、选择要输出的变量
         clean_dict = {
             'drawGuid': df['guid'],
             'marketGuid': df['grandParentId'],

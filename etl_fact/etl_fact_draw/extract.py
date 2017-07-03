@@ -73,7 +73,6 @@ class Extract(object):
                    " operatingState " \
                    "FROM CommercialZone_Sample " \
                    " WHERE guid != '' " \
-                   " AND cityName != '成都市'" \
                    " AND isDel = 0" \
                    " AND checkStatus IN (1,3)" \
                    " AND id > %d" \
