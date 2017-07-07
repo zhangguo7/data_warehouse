@@ -11,7 +11,7 @@ from load import Load
 from record import Record
 
 
-def etl_func():
+def template_main_func():
     extract = Extract()
     transform = Transform()
     load = Load()
@@ -19,4 +19,9 @@ def etl_func():
 
 
 if __name__ == '__main__':
-    pass
+    db_cfg = configparser.ConfigParser()
+    db_cfg.read('db.cfg')
+
+    logging.config.fileConfig('log.cfg')
+
+    template_main_func()
